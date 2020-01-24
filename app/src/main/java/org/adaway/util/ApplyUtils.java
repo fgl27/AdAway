@@ -126,6 +126,7 @@ public class ApplyUtils {
         Log.i(Constants.TAG, "Copy hosts file with target: " + target);
         String privateDir = context.getFilesDir().getAbsolutePath();
         String privateFile = privateDir + File.separator + Constants.HOSTS_FILENAME;
+        SimpleCommand mcommand;
 
         // if the target has a trailing slash, it is not a valid target!
         if (target.endsWith("/")) {
@@ -154,6 +155,8 @@ public class ApplyUtils {
             if (!writable) {
                 // remount for write access
                 Log.i(Constants.TAG, "Remounting for RW...");
+                mcommand = new SimpleCommand("mount -o rw,remount /");
+                shell.add(mcommand).waitForFinish();
                 if (!tb.remount(target, "RW")) {
                     throw new RemountException("Remounting as RW failed! Probably not a problem!");
                 }
@@ -173,6 +176,9 @@ public class ApplyUtils {
             SimpleCommand command = new SimpleCommand(Constants.COMMAND_CHOWN + " " + target,
                     Constants.COMMAND_CHMOD_644 + " " + target);
             shell.add(command).waitForFinish();
+
+            mcommand = new SimpleCommand("mount -o ro,remount /");
+            shell.add(mcommand).waitForFinish();
         } catch (IOException | TimeoutException exception) {
             Log.e(Constants.TAG, "Exception!", exception);
 
